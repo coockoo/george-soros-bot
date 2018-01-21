@@ -1,0 +1,23 @@
+{
+  "name": "george-soros-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot, that helps you trade cryptocurrencies (fast buy/sell)",
+  "main": "src/inde.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "cryptocurrency",
+    "trade"
+  ],
+  "author": "Oleksandr Bondarchuk <alex.coockoo@gmail.com> (https://github.com/coockoo)",
+  "license": "MIT",
+  "dependencies": {
+    "node-telegram-bot-api": "^0.30.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.14.11"
+  }
+}
