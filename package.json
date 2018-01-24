@@ -15,7 +15,9 @@
   "author": "Oleksandr Bondarchuk <alex.coockoo@gmail.com> (https://github.com/coockoo)",
   "license": "MIT",
   "dependencies": {
-    "node-telegram-bot-api": "^0.30.0"
+    "bluebird": "^3.5.1",
+    "node-telegram-bot-api": "^0.30.0",
+    "request": "^2.83.0"
   },
   "devDependencies": {
     "nodemon": "^1.14.11"
