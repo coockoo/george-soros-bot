@@ -5,6 +5,8 @@ const yobit = require('./exchanges/yobit');
 const log = require('./log');
 const config = require('./config');
 
+const userData = {};
+
 log.info('starting application')
 const bot = new TelegramBot(config.bot.key, { polling: true });
 
@@ -30,11 +32,6 @@ async function handleMessage (message) {
 }
 
 async function handleBuyMessage (message, buyCurrency, sellCurrency, amount, extra) {
-	// TODO: Add message localization
-	const noticeMessage = util.format('preparing to buy %s for %s %s with extra %s%', buyCurrency, amount, sellCurrency, extra || 0)
-	log.debug(noticeMessage)
-	bot.sendMessage(message.chat.id, noticeMessage)
-
 	const pair = `${buyCurrency.toLowerCase()}_${sellCurrency.toLowerCase()}`;
 	const ordersResponse = await yobit.sendPublicRequest(`depth/${pair}`);
 	const sellOrders = ordersResponse[pair].asks;
@@ -55,8 +52,6 @@ async function handleBuyMessage (message, buyCurrency, sellCurrency, amount, ext
 		return o[0] >= lowerRate && o[0] <= upperRate;
 	})
 
-	console.log(sellOrdersInRange)
-
 	const buys = [];
 	let remainingBudget = amount;
 	for (let i = 0; i < sellOrdersInRange.length && remainingBudget > 0; ++i) {
@@ -67,13 +62,14 @@ async function handleBuyMessage (message, buyCurrency, sellCurrency, amount, ext
 		remainingBudget -= budget
 	}
 
-	let buyInfoMessage = 'About to buy:\n'
-	buyInfoMessage += buys.map((buy) => {
-		return `- ${buy.amount.toFixed('8')} ${buyCurrency} for ${buy.budget.toFixed('8')} ${sellCurrency} with rate ${buy.rate.toFixed('8')}`
-	}).join('\n')
-	buyInfoMessage += `Total ${sellCurrency} spent: ${(amount - remainingBudget).toFixed('8')}`
-
-	bot.sendMessage(message.chat.id, buyInfoMessage)
+	const buyInfoMessage = `
+_About to buy:_
+${buys.map((buy) => (
+	`${buy.rate.toFixed('8')} | ${buy.amount.toFixed('8')} *${buyCurrency}* | ${buy.budget.toFixed('8')} *${sellCurrency}*\n`
+)).join('')}
+_Total_ *${(amount - remainingBudget).toFixed('8')} ${sellCurrency}*
+	`
+	bot.sendMessage(message.chat.id, buyInfoMessage, { parse_mode: 'markdown' })
 
 	//await Promise.map(buys => {
 	//})
