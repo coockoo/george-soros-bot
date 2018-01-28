@@ -1,11 +1,7 @@
 module.exports = {
+	env: process.env.NODE_ENV || 'development',
 	bot: {
 		key: process.env.TELEGRAM_BOT_KEY,
 	},
-	exchanges: {
-		yobit: {
-			key: process.env.YOBIT_KEY,
-			secret: process.env.YOBIT_SECRET,
-		},
-	},
+	redis: process.env.REDIS_URI,
 };
