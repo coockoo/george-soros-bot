@@ -106,25 +106,48 @@ _Total_ *${(amount - remainingBudget).toFixed('8')} ${sellCurrency}*
 }
 
 async function handleInfoMessage (message) {
-	log.debug('preparing to process info message')
-	const res = await yobit.sendRequest(
-		{ method: 'getInfo' },
-		config.exchanges.yobit.key, config.exchanges.yobit.secret
-	)
-	console.log(res)
-	bot.sendMessage(message.chat.id, `you've got ${res.transaction_count} transactions and ${res.open_orders} open orders`)
+	const key = await redis.get(getRedisKey('yobit', message.from.id, 'api_key'))
+	const secret = await redis.get(getRedisKey('yobit', message.from.id, 'api_secret'))
+	const found = `Keys and secrets can be found [here](https://yobit.io/en/api/keys/).`
+	if (!key && !secret) {
+		bot.sendMessage(message.chat.id, `\`api_key\` and \`api_secret\` are required to perform this action. Try \`/set api_key <YOUR_API_KEY>`` and \`/set api_secret <YOUR_API_SECRET>\`. ${found}`, { parse_mode: 'markdown' });
+		return;
+	}
+	if (!key) {
+		bot.sendMessage(message.chat.id, `\`api_key\` is required to perform this action. Try \`/set api_key <YOUR_API_KEY>``. ${found}`, { parse_mode: 'markdown' });
+		return;
+	}
+	if (!secret) {
+		bot.sendMessage(message.chat.id, `\`api_secret\` is required to perform this action. Try \`/set api_secret <YOUR_API_SECRET>\`. ${found}`, { parse_mode: 'markdown' });
+		return;
+	}
+	let res
+	try {
+		res = await yobit.sendRequest({ method: 'getInfo' }, key, secret)
+		console.log('response', res)
+	} catch (e) {
+		bot.sendMessage(message.chat.id, e.message);
+		return;
+
+	}
+	bot.sendMessage(message.chat.id, `You've got ${res.transaction_count} transactions and ${res.open_orders} open orders`)
 }
 
 async function handleSetMessage (message, key, value) {
-	const userId = message.from.id;
-	const setKey  = `${env}_yobit_${userId}_${key}`;
+	const setKey = getRedisKey('yobit', message.from.id, key);
 	await redis.set(setKey, value, 'EX', 86400); // Expire after 1 day
-	bot.sendMessage(message.chat.id, 'Key successfully set')
+	bot.sendMessage(message.chat.id, `Key \`${key}\` successfully set for 1 day!`, { parse_mode: 'markdown' })
+}
+
+function getRedisKey (exchange, userId, key) {
+	return `${env}_${exchange}_${userId}_${key}`;
 }
 
 function handlePollingError (error) {
 	log.error('polling error', error)
 }
+
+process.on('unhandledRejection', log.crit)
 
 	/*
 handleMessage({ text: '/buy USD UAH 100' })
