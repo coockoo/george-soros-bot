@@ -8,6 +8,7 @@ const config = require('./config');
 const { env } = config;
 const redis = require('./redis');
 
+const startMessage = fs.readFileSync(path.join(__dirname, 'start-message.md'), 'utf8')
 const helpMessage = fs.readFileSync(path.join(__dirname, 'help-message.md'), 'utf8')
 
 log.info('starting application', { env })
@@ -19,7 +20,14 @@ bot.on('polling_error', handlePollingError)
 async function handleMessage (message) {
 	log.debug('handle message', message)
 
-	const helpPattern = /^\/help/
+	const startPattern = /^\/start/;
+	const startMatch = startPattern.exec(message.text)
+	if (startMatch) {
+		const [_, ...params] = startMatch;
+		return handleStartMessage(message, params);
+	}
+
+	const helpPattern = /^\/help/;
 	const helpMatch = helpPattern.exec(message.text)
 	if (helpMatch) {
 		const [_, ...params] = helpMatch;
@@ -45,6 +53,10 @@ async function handleMessage (message) {
 		const [_, ...params] = setMatch;
 		return handleSetMessage(message, ...params);
 	}
+}
+
+async function handleStartMessage (message) {
+	bot.sendMessage(message.chat.id, startMessage, { parse_mode: 'markdown' })
 }
 
 async function handleHelpMessage (message) {
@@ -87,7 +99,7 @@ About to buy:
 ${buys.map((buy) => (
 	`${buy.rate.toFixed('8')} | ${buy.amount.toFixed('8')} *${buyCurrency}* | ${buy.budget.toFixed('8')} *${sellCurrency}*\n`
 )).join('')}
-Total *${(amount - remainingBudget).toFixed('8')} ${sellCurrency}*
+Total: ${(amount - remainingBudget).toFixed('8')} *${sellCurrency}*
 	`
 	bot.sendMessage(message.chat.id, buyInfoMessage, { parse_mode: 'markdown' })
 
@@ -150,11 +162,3 @@ function handlePollingError (error) {
 }
 
 process.on('unhandledRejection', log.crit)
-
-	/*
-handleMessage({ text: '/buy USD UAH 100' })
-	.then(() => {
-		console.log('done')
-		process.exit(0)
-	})
-	*/
