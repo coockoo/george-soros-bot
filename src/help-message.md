@@ -1,0 +1,4 @@
+- `/help` displays this text
+- `/set <key> <value>` sets user value (possible keys are `api_key`, `api_secret`)
+- `/info` get info about user
+- `/buy <buy_currency> <sell_currency> <amount> <window%>`. (For example to buy *DOGE* for amount of 0.001 *BTC* and with window 20% `/buy DOGE BTC 0.001 20`)

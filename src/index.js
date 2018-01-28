@@ -1,5 +1,6 @@
 const TelegramBot = require('node-telegram-bot-api');
-const util = require('util');
+const fs = require('fs');
+const path = require('path');
 const yobit = require('./exchanges/yobit');
 
 const log = require('./log');
@@ -7,7 +8,7 @@ const config = require('./config');
 const { env } = config;
 const redis = require('./redis');
 
-const userData = {};
+const helpMessage = fs.readFileSync(path.join(__dirname, 'help-message.md'), 'utf8')
 
 log.info('starting application', { env })
 const bot = new TelegramBot(config.bot.key, { polling: true });
@@ -25,7 +26,7 @@ async function handleMessage (message) {
 		return handleHelpMessage(message, ...params);
 	}
 
-	const buyPattern = /^\/buy\s([A-Z]{2,5})\s([A-Z]{2,5})\s(\d+)(?:\s(\d+))?/
+	const buyPattern = /^\/buy\s([A-Z]{2,5})\s([A-Z]{2,5})\s([\d\.]+)(?:\s([\d\.]+))?/
 	const buyMatch = buyPattern.exec(message.text)
 	if (buyMatch) {
 		const [_, ...params] = buyMatch;
@@ -46,7 +47,8 @@ async function handleMessage (message) {
 	}
 }
 
-async function handleHelpMessage () {
+async function handleHelpMessage (message) {
+	bot.sendMessage(message.chat.id, helpMessage, { parse_mode: 'markdown' })
 }
 
 async function handleBuyMessage (message, buyCurrency, sellCurrency, amount, extra) {
@@ -81,11 +83,11 @@ async function handleBuyMessage (message, buyCurrency, sellCurrency, amount, ext
 	}
 
 	const buyInfoMessage = `
-_About to buy:_
+About to buy:
 ${buys.map((buy) => (
 	`${buy.rate.toFixed('8')} | ${buy.amount.toFixed('8')} *${buyCurrency}* | ${buy.budget.toFixed('8')} *${sellCurrency}*\n`
 )).join('')}
-_Total_ *${(amount - remainingBudget).toFixed('8')} ${sellCurrency}*
+Total *${(amount - remainingBudget).toFixed('8')} ${sellCurrency}*
 	`
 	bot.sendMessage(message.chat.id, buyInfoMessage, { parse_mode: 'markdown' })
 
