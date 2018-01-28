@@ -4,10 +4,12 @@ const yobit = require('./exchanges/yobit');
 
 const log = require('./log');
 const config = require('./config');
+const { env } = config;
+const redis = require('./redis');
 
 const userData = {};
 
-log.info('starting application')
+log.info('starting application', { env })
 const bot = new TelegramBot(config.bot.key, { polling: true });
 
 bot.on('text', handleMessage)
@@ -15,6 +17,13 @@ bot.on('polling_error', handlePollingError)
 
 async function handleMessage (message) {
 	log.debug('handle message', message)
+
+	const helpPattern = /^\/help/
+	const helpMatch = helpPattern.exec(message.text)
+	if (helpMatch) {
+		const [_, ...params] = helpMatch;
+		return handleHelpMessage(message, ...params);
+	}
 
 	const buyPattern = /^\/buy\s([A-Z]{2,5})\s([A-Z]{2,5})\s(\d+)(?:\s(\d+))?/
 	const buyMatch = buyPattern.exec(message.text)
@@ -29,6 +38,15 @@ async function handleMessage (message) {
 		return handleInfoMessage(message)
 	}
 
+	const setPattern = /^\/set\s([a-zA-Z_]+)\s(.+)?/;
+	const setMatch = setPattern.exec(message.text);
+	if (setMatch) {
+		const [_, ...params] = setMatch;
+		return handleSetMessage(message, ...params);
+	}
+}
+
+async function handleHelpMessage () {
 }
 
 async function handleBuyMessage (message, buyCurrency, sellCurrency, amount, extra) {
@@ -95,6 +113,13 @@ async function handleInfoMessage (message) {
 	)
 	console.log(res)
 	bot.sendMessage(message.chat.id, `you've got ${res.transaction_count} transactions and ${res.open_orders} open orders`)
+}
+
+async function handleSetMessage (message, key, value) {
+	const userId = message.from.id;
+	const setKey  = `${env}_yobit_${userId}_${key}`;
+	await redis.set(setKey, value, 'EX', 86400); // Expire after 1 day
+	bot.sendMessage(message.chat.id, 'Key successfully set')
 }
 
 function handlePollingError (error) {
