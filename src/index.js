@@ -124,11 +124,11 @@ async function handleInfoMessage (message) {
 	const secret = await redis.get(getRedisKey('yobit', message.from.id, 'api_secret'))
 	const found = `Keys and secrets can be found [here](https://yobit.io/en/api/keys/).`
 	if (!key && !secret) {
-		bot.sendMessage(message.chat.id, `\`api_key\` and \`api_secret\` are required to perform this action. Try \`/set api_key <YOUR_API_KEY>`` and \`/set api_secret <YOUR_API_SECRET>\`. ${found}`, { parse_mode: 'markdown' });
+		bot.sendMessage(message.chat.id, `\`api_key\` and \`api_secret\` are required to perform this action. Try \`/set api_key <YOUR_API_KEY>\` and \`/set api_secret <YOUR_API_SECRET>\`. ${found}`, { parse_mode: 'markdown' });
 		return;
 	}
 	if (!key) {
-		bot.sendMessage(message.chat.id, `\`api_key\` is required to perform this action. Try \`/set api_key <YOUR_API_KEY>``. ${found}`, { parse_mode: 'markdown' });
+		bot.sendMessage(message.chat.id, `\`api_key\` is required to perform this action. Try \`/set api_key <YOUR_API_KEY>\`. ${found}`, { parse_mode: 'markdown' });
 		return;
 	}
 	if (!secret) {
