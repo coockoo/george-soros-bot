@@ -138,11 +138,9 @@ async function handleInfoMessage (message) {
 	let res
 	try {
 		res = await yobit.sendRequest({ method: 'getInfo' }, key, secret)
-		console.log('response', res)
 	} catch (e) {
 		bot.sendMessage(message.chat.id, e.message);
 		return;
-
 	}
 	bot.sendMessage(message.chat.id, `You've got ${res.transaction_count} transactions and ${res.open_orders} open orders`)
 }

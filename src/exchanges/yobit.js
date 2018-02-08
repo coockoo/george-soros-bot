@@ -48,6 +48,11 @@ async function sendRequest (params, key, secret) {
 		headers: { key, sign },
 		form,
 	});
+
+	if (statusCode === 503 && body && /cloudflare/i.exec(body)) {
+		throw new Error('request failed: couldflare protection is enabled')
+	}
+
 	if (statusCode !== 200) {
 		throw new Error(`invalid status code ${statusCode} for request (response body: ${body} )`);
 	}
