@@ -22,9 +22,9 @@
     "bluebird": "^3.5.1",
     "ioredis": "^3.2.2",
     "node-telegram-bot-api": "^0.30.0",
-    "request": "^2.83.0"
+    "request": "^2.85.0"
   },
   "devDependencies": {
-    "nodemon": "^1.14.11"
+    "nodemon": "^1.17.4"
   }
 }
